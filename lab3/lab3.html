@@ -27,13 +27,15 @@
     </div>
     <p id="status">Нажмите на полотно, чтобы выбрать начальную и конечную точки.</p>
     <canvas id="gridCanvas"></canvas>
-
+    <p id="timing"></p>
+    
     <script>
         const canvas = document.getElementById('gridCanvas');
         const ctx = canvas.getContext('2d');
         const algorithmSelect = document.getElementById('algorithm');
         const status = document.getElementById('status');
         const gridSizeSlider = document.getElementById('gridSize');
+        const timing = document.getElementById('timing');
 
         let cellSize = parseInt(gridSizeSlider.value);
         let startX = null, startY = null;
@@ -121,6 +123,8 @@
             drawPoint(endX, endY, 'red');
 
             const algorithm = algorithmSelect.value;
+            let startTime = performance.now();
+
             switch (algorithm) {
                 case 'step':
                     stepAlgorithm(startX, startY, endX, endY);
@@ -136,6 +140,9 @@
                     break;
             }
 
+            let endTime = performance.now();
+            let timeTaken = endTime - startTime;
+            timing.textContent = `Время выполнения: ${timeTaken.toFixed(2)} мс`;
             resetPoints();
         }
 
@@ -216,6 +223,7 @@
             ctx.fillRect((xc - y) * cellSize, (yc - x) * cellSize, cellSize, cellSize);
         }
 
+        // Устанавливаем размеры канваса и рисуем сетку при загрузке страницы
         canvas.width = 800;
         canvas.height = 600;
         clearAndDrawGrid();
