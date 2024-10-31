@@ -147,34 +147,40 @@
         }
 
         function stepAlgorithm(x0, y0, x1, y1) {
-            ctx.fillStyle = 'black';
+            ctx.fillStyle = 'black'; // Цвет для пошагового алгоритма
             const dx = x1 - x0;
             const dy = y1 - y0;
             const steps = Math.max(Math.abs(dx), Math.abs(dy));
             const xIncrement = dx / steps;
             const yIncrement = dy / steps;
+            
             let x = x0, y = y0;
             for (let i = 0; i <= steps; i++) {
-                drawPoint(Math.round(x), Math.round(y), 'black');
-                x += xIncrement;
-                y += yIncrement;
+                drawPoint(Math.round(x), Math.round(y), 'black'); // Рисуем точки
+                x += xIncrement; // Увеличиваем координату X
+                y += yIncrement; // Увеличиваем координату Y
             }
         }
 
         function ddaAlgorithm(x0, y0, x1, y1) {
-            ctx.fillStyle = 'red';
+            ctx.fillStyle = 'red'; // Цвет для ДДА алгоритма
             const dx = x1 - x0;
             const dy = y1 - y0;
             const steps = Math.max(Math.abs(dx), Math.abs(dy));
             const xIncrement = dx / steps;
             const yIncrement = dy / steps;
+            
             let x = x0, y = y0;
-            for (let i = 0; i <= steps; i++) {
-                drawPoint(Math.round(x), Math.round(y), 'red');
-                x += xIncrement;
-                y += yIncrement;
+            for (let i = 0; i < steps; i++) {
+                drawPoint(Math.round(x), Math.round(y), 'red'); // Рисуем точки
+                x += xIncrement; // Увеличиваем координату X
+                y += yIncrement; // Увеличиваем координату Y
             }
+            // Рисуем последнюю точку, чтобы не пропустить её
+            drawPoint(Math.round(x1), Math.round(y1), 'red'); 
         }
+
+        
 
         function bresenhamLine(x0, y0, x1, y1) {
             ctx.fillStyle = 'blue';
