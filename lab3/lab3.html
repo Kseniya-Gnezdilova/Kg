@@ -19,23 +19,20 @@
             <option value="step">Пошаговый алгоритм</option>
             <option value="dda">ЦДА</option>
             <option value="bresenham">Брезенхем (линия)</option>
-            <option value="bresenham_circle">Брезенхем (окружность)</option>
         </select>
         <label>Размер клетки:</label>
-        <input type="range" id="gridSize" min="10" max="50" value="20" onchange="updateGridSize()">
+        <input type="range" id="gridSize" min="20" max="50" value="40" onchange="updateGridSize()">
         <button onclick="draw()">Нарисовать</button>
     </div>
     <p id="status">Нажмите на полотно, чтобы выбрать начальную и конечную точки.</p>
     <canvas id="gridCanvas"></canvas>
-    <p id="timing"></p>
-    
+
     <script>
         const canvas = document.getElementById('gridCanvas');
         const ctx = canvas.getContext('2d');
         const algorithmSelect = document.getElementById('algorithm');
         const status = document.getElementById('status');
         const gridSizeSlider = document.getElementById('gridSize');
-        const timing = document.getElementById('timing');
 
         let cellSize = parseInt(gridSizeSlider.value);
         let startX = null, startY = null;
@@ -49,38 +46,30 @@
 
         function clearAndDrawGrid() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.strokeStyle = "#d3d3d3";
 
             // Рисуем сетку
+            ctx.strokeStyle = "#d3d3d3";
+            ctx.font = `${Math.max(cellSize / 3, 10)}px Arial`;
+            ctx.fillStyle = "black";
+
             for (let x = 0; x < canvas.width; x += cellSize) {
                 ctx.beginPath();
                 ctx.moveTo(x, 0);
                 ctx.lineTo(x, canvas.height);
                 ctx.stroke();
+
+                // Подпись координаты X
+                ctx.fillText((x / cellSize).toFixed(0), x + 5, 15);
             }
+
             for (let y = 0; y < canvas.height; y += cellSize) {
                 ctx.beginPath();
                 ctx.moveTo(0, y);
                 ctx.lineTo(canvas.width, y);
                 ctx.stroke();
-            }
 
-            // Рисуем оси координат
-            ctx.strokeStyle = "black";
-            ctx.beginPath();
-            ctx.moveTo(canvas.width / 2, 0);
-            ctx.lineTo(canvas.width / 2, canvas.height);
-            ctx.moveTo(0, canvas.height / 2);
-            ctx.lineTo(canvas.width, canvas.height / 2);
-            ctx.stroke();
-
-            // Рисуем метки координат
-            ctx.fillStyle = "black";
-            for (let x = 0; x <= canvas.width; x += cellSize) {
-                ctx.fillText(x / cellSize - canvas.width / (2 * cellSize), x, canvas.height / 2 + 10);
-            }
-            for (let y = 0; y <= canvas.height; y += cellSize) {
-                ctx.fillText(canvas.height / (2 * cellSize) - y / cellSize, canvas.width / 2 + 5, y);
+                // Подпись координаты Y
+                ctx.fillText((y / cellSize).toFixed(0), 5, y + 15);
             }
         }
 
@@ -123,8 +112,6 @@
             drawPoint(endX, endY, 'red');
 
             const algorithm = algorithmSelect.value;
-            let startTime = performance.now();
-
             switch (algorithm) {
                 case 'step':
                     stepAlgorithm(startX, startY, endX, endY);
@@ -135,36 +122,24 @@
                 case 'bresenham':
                     bresenhamLine(startX, startY, endX, endY);
                     break;
-                case 'bresenham_circle':
-                    bresenhamCircle(startX, startY, Math.sqrt((endX - startX) ** 2 + (endY - startY) ** 2));
-                    break;
             }
 
-            let endTime = performance.now();
-            let timeTaken = endTime - startTime;
-            timing.textContent = `Время выполнения: ${timeTaken.toFixed(2)} мс`;
             resetPoints();
         }
 
         function stepAlgorithm(x0, y0, x1, y1) {
             ctx.fillStyle = 'black';
-            const startTime = performance.now();
             const dx = Math.abs(x1 - x0);
-            console.log(`Вычисляем dx: ${dx} клеток`);
             const dy = Math.abs(y1 - y0);
             const sx = x0 < x1 ? 1 : -1;
-            console.log(`Вычисляем dy: ${dy} клеток`);
             const sy = y0 < y1 ? 1 : -1;
 
-            let x = x0,
-                y = y0;
+            let x = x0, y = y0;
 
             if (dx > dy) {
-                console.log(`x - доминирующая ось`);
                 let error = dx / 2;
                 for (let i = 0; i <= dx; i++) {
-                    console.log(`Красим клетку (${Math.round(x)} ${Math.round(y)})`);
-                    ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+                    drawPoint(x, y, 'black');
                     x += sx;
                     error -= dy;
                     if (error < 0) {
@@ -173,11 +148,9 @@
                     }
                 }
             } else {
-                console.log(`y - доминирующая ось`);
                 let error = dy / 2;
                 for (let i = 0; i <= dy; i++) {
-                    console.log(`Красим клетку (${Math.round(x)} ${Math.round(y)})`);
-                    ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+                    drawPoint(x, y, 'black');
                     y += sy;
                     error -= dx;
                     if (error < 0) {
@@ -186,29 +159,22 @@
                     }
                 }
             }
-            const endTime = performance.now();
-            const averageTime = (endTime - startTime) * 1000;
-            console.log(`Время выполнения для пошагового алгоритма: ${averageTime.toFixed(2)} микросекунд`);
         }
 
         function ddaAlgorithm(x0, y0, x1, y1) {
-            ctx.fillStyle = 'red'; 
+            ctx.fillStyle = 'red';
             const dx = x1 - x0;
             const dy = y1 - y0;
             const steps = Math.max(Math.abs(dx), Math.abs(dy));
             const xIncrement = dx / steps;
             const yIncrement = dy / steps;
-            
             let x = x0, y = y0;
-            for (let i = 0; i < steps; i++) {
-                drawPoint(Math.round(x), Math.round(y), 'red'); 
-                x += xIncrement; 
-                y += yIncrement; 
+            for (let i = 0; i <= steps; i++) {
+                drawPoint(Math.round(x), Math.round(y), 'red');
+                x += xIncrement;
+                y += yIncrement;
             }
-            drawPoint(Math.round(x1), Math.round(y1), 'red'); 
         }
-
-        
 
         function bresenhamLine(x0, y0, x1, y1) {
             ctx.fillStyle = 'blue';
@@ -225,36 +191,6 @@
                 if (e2 > -dy) { err -= dy; x0 += sx; }
                 if (e2 < dx) { err += dx; y0 += sy; }
             }
-        }
-
-        function bresenhamCircle(xc, yc, r) {
-            ctx.fillStyle = 'brown';
-            let x = 0;
-            let y = Math.round(r);
-            let d = 3 - 2 * Math.round(r);
-            drawCirclePoints(xc, yc, x, y);
-
-            while (y >= x) {
-                x++;
-                if (d > 0) {
-                    y--;
-                    d = d + 4 * (x - y) + 10;
-                } else {
-                    d = d + 4 * x + 6;
-                }
-                drawCirclePoints(xc, yc, x, y);
-            }
-        }
-
-        function drawCirclePoints(xc, yc, x, y) {
-            ctx.fillRect((xc + x) * cellSize, (yc + y) * cellSize, cellSize, cellSize);
-            ctx.fillRect((xc - x) * cellSize, (yc + y) * cellSize, cellSize, cellSize);
-            ctx.fillRect((xc + x) * cellSize, (yc - y) * cellSize, cellSize, cellSize);
-            ctx.fillRect((xc - x) * cellSize, (yc - y) * cellSize, cellSize, cellSize);
-            ctx.fillRect((xc + y) * cellSize, (yc + x) * cellSize, cellSize, cellSize);
-            ctx.fillRect((xc - y) * cellSize, (yc + x) * cellSize, cellSize, cellSize);
-            ctx.fillRect((xc + y) * cellSize, (yc - x) * cellSize, cellSize, cellSize);
-            ctx.fillRect((xc - y) * cellSize, (yc - x) * cellSize, cellSize, cellSize);
         }
 
         canvas.width = 800;
