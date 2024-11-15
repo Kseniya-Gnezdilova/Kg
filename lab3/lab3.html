@@ -147,23 +147,52 @@
         }
 
         function stepAlgorithm(x0, y0, x1, y1) {
-            ctx.fillStyle = 'black'; // Цвет для пошагового алгоритма
-            const dx = x1 - x0;
-            const dy = y1 - y0;
-            const steps = Math.max(Math.abs(dx), Math.abs(dy));
-            const xIncrement = dx / steps;
-            const yIncrement = dy / steps;
-            
-            let x = x0, y = y0;
-            for (let i = 0; i <= steps; i++) {
-                drawPoint(Math.round(x), Math.round(y), 'black'); // Рисуем точки
-                x += xIncrement; // Увеличиваем координату X
-                y += yIncrement; // Увеличиваем координату Y
+            ctx.fillStyle = 'black';
+            const startTime = performance.now();
+            const dx = Math.abs(x1 - x0);
+            console.log(`Вычисляем dx: ${dx} клеток`);
+            const dy = Math.abs(y1 - y0);
+            const sx = x0 < x1 ? 1 : -1;
+            console.log(`Вычисляем dy: ${dy} клеток`);
+            const sy = y0 < y1 ? 1 : -1;
+
+            let x = x0,
+                y = y0;
+
+            if (dx > dy) {
+                console.log(`x - доминирующая ось`);
+                let error = dx / 2;
+                for (let i = 0; i <= dx; i++) {
+                    console.log(`Красим клетку (${Math.round(x)} ${Math.round(y)})`);
+                    ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+                    x += sx;
+                    error -= dy;
+                    if (error < 0) {
+                        y += sy;
+                        error += dx;
+                    }
+                }
+            } else {
+                console.log(`y - доминирующая ось`);
+                let error = dy / 2;
+                for (let i = 0; i <= dy; i++) {
+                    console.log(`Красим клетку (${Math.round(x)} ${Math.round(y)})`);
+                    ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+                    y += sy;
+                    error -= dx;
+                    if (error < 0) {
+                        x += sx;
+                        error += dy;
+                    }
+                }
             }
+            const endTime = performance.now();
+            const averageTime = (endTime - startTime) * 1000;
+            console.log(`Время выполнения для пошагового алгоритма: ${averageTime.toFixed(2)} микросекунд`);
         }
 
         function ddaAlgorithm(x0, y0, x1, y1) {
-            ctx.fillStyle = 'red'; // Цвет для ДДА алгоритма
+            ctx.fillStyle = 'red'; 
             const dx = x1 - x0;
             const dy = y1 - y0;
             const steps = Math.max(Math.abs(dx), Math.abs(dy));
@@ -172,11 +201,10 @@
             
             let x = x0, y = y0;
             for (let i = 0; i < steps; i++) {
-                drawPoint(Math.round(x), Math.round(y), 'red'); // Рисуем точки
-                x += xIncrement; // Увеличиваем координату X
-                y += yIncrement; // Увеличиваем координату Y
+                drawPoint(Math.round(x), Math.round(y), 'red'); 
+                x += xIncrement; 
+                y += yIncrement; 
             }
-            // Рисуем последнюю точку, чтобы не пропустить её
             drawPoint(Math.round(x1), Math.round(y1), 'red'); 
         }
 
@@ -229,7 +257,6 @@
             ctx.fillRect((xc - y) * cellSize, (yc - x) * cellSize, cellSize, cellSize);
         }
 
-        // Устанавливаем размеры канваса и рисуем сетку при загрузке страницы
         canvas.width = 800;
         canvas.height = 600;
         clearAndDrawGrid();
