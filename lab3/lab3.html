@@ -19,6 +19,7 @@
             <option value="step">Пошаговый алгоритм</option>
             <option value="dda">ЦДА</option>
             <option value="bresenham">Брезенхем (линия)</option>
+            <option value="bresenham_circle">Брезенхем (окружность)</option>
         </select>
         <label>Размер клетки:</label>
         <input type="range" id="gridSize" min="20" max="50" value="40" onchange="updateGridSize()">
@@ -26,6 +27,7 @@
     </div>
     <p id="status">Нажмите на полотно, чтобы выбрать начальную и конечную точки.</p>
     <canvas id="gridCanvas"></canvas>
+    <p id="timing"></p>
 
     <script>
         const canvas = document.getElementById('gridCanvas');
@@ -33,6 +35,7 @@
         const algorithmSelect = document.getElementById('algorithm');
         const status = document.getElementById('status');
         const gridSizeSlider = document.getElementById('gridSize');
+        const timing = document.getElementById('timing');
 
         let cellSize = parseInt(gridSizeSlider.value);
         let startX = null, startY = null;
@@ -112,6 +115,7 @@
             drawPoint(endX, endY, 'red');
 
             const algorithm = algorithmSelect.value;
+            let startTime = performance.now();
             switch (algorithm) {
                 case 'step':
                     stepAlgorithm(startX, startY, endX, endY);
@@ -122,8 +126,14 @@
                 case 'bresenham':
                     bresenhamLine(startX, startY, endX, endY);
                     break;
+                case 'bresenham_circle':
+                    bresenhamCircle(startX, startY, Math.sqrt((endX - startX) ** 2 + (endY - startY) ** 2));
+                    break;
             }
-
+        
+            let endTime = performance.now();
+            let timeTaken = endTime - startTime;
+            timing.textContent = `Время выполнения: ${timeTaken.toFixed(2)} мс`;
             resetPoints();
         }
 
@@ -191,6 +201,36 @@
                 if (e2 > -dy) { err -= dy; x0 += sx; }
                 if (e2 < dx) { err += dx; y0 += sy; }
             }
+        }
+
+        function bresenhamCircle(xc, yc, r) {
+            ctx.fillStyle = 'brown';
+            let x = 0;
+            let y = Math.round(r);
+            let d = 3 - 2 * Math.round(r);
+            drawCirclePoints(xc, yc, x, y);
+
+            while (y >= x) {
+                x++;
+                if (d > 0) {
+                    y--;
+                    d = d + 4 * (x - y) + 10;
+                } else {
+                    d = d + 4 * x + 6;
+                }
+                drawCirclePoints(xc, yc, x, y);
+            }
+        }
+
+        function drawCirclePoints(xc, yc, x, y) {
+            ctx.fillRect((xc + x) * cellSize, (yc + y) * cellSize, cellSize, cellSize);
+            ctx.fillRect((xc - x) * cellSize, (yc + y) * cellSize, cellSize, cellSize);
+            ctx.fillRect((xc + x) * cellSize, (yc - y) * cellSize, cellSize, cellSize);
+            ctx.fillRect((xc - x) * cellSize, (yc - y) * cellSize, cellSize, cellSize);
+            ctx.fillRect((xc + y) * cellSize, (yc + x) * cellSize, cellSize, cellSize);
+            ctx.fillRect((xc - y) * cellSize, (yc + x) * cellSize, cellSize, cellSize);
+            ctx.fillRect((xc + y) * cellSize, (yc - x) * cellSize, cellSize, cellSize);
+            ctx.fillRect((xc - y) * cellSize, (yc - x) * cellSize, cellSize, cellSize);
         }
 
         canvas.width = 800;
